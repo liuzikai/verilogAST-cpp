@@ -94,3 +94,15 @@ make_simple_always_body() {
 
   return body;
 }
+
+std::vector<std::unique_ptr<vAST::BehavioralStatement>>
+make_simple_case_body() {
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
+  body.emplace_back(std::make_unique<vAST::BlockingAssign>(
+      std::make_unique<vAST::Identifier>("a"),
+      std::make_unique<vAST::Identifier>("b")));
+  body.emplace_back(std::make_unique<vAST::NonBlockingAssign>(
+      std::make_unique<vAST::Identifier>("c"),
+      std::make_unique<vAST::Identifier>("d")));
+  return body;
+}

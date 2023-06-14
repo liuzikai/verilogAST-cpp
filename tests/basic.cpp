@@ -516,6 +516,50 @@ TEST(BasicTests, TestAlwaysStar) {
   EXPECT_EQ(always_star.toString(), expected_str);
 }
 
+TEST(BasicTests, TestCase) {
+  std::vector<std::variant<
+      std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::PosEdge>,
+      std::unique_ptr<vAST::NegEdge>, std::unique_ptr<vAST::Star>>>
+      sensitivity_list;
+  sensitivity_list.push_back(std::make_unique<vAST::Star>());
+
+  vAST::Always always_star(std::move(sensitivity_list),
+                           make_simple_always_body());
+
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
+  body.emplace_back(std::make_unique<vAST::BlockingAssign>(
+      std::make_unique<vAST::Identifier>("a"),
+      std::make_unique<vAST::Identifier>("b")));
+  body.emplace_back(std::make_unique<vAST::NonBlockingAssign>(
+      std::make_unique<vAST::Identifier>("c"),
+      std::make_unique<vAST::Identifier>("d")));
+
+  std::vector<std::pair<std::variant<std::unique_ptr<vAST::Expression>, std::unique_ptr<vAST::Default>>,
+                        std::vector<std::unique_ptr<vAST::BehavioralStatement>>>> cases;
+  cases.emplace_back(vAST::make_num("2'b00"), make_simple_case_body());
+  cases.emplace_back(vAST::make_num("2'b01"), make_simple_case_body());
+  cases.emplace_back(std::make_unique<vAST::Default>(), make_simple_case_body());
+
+  vAST::Case c(std::make_unique<vAST::Identifier>("a"), std::move(cases));
+
+  std::string expected_str =
+      "case (a)\n"
+      "2'b00 : begin\n"
+      "    a = b;\n"
+      "    c <= d;\n"
+      "end\n"
+      "2'b01 : begin\n"
+      "    a = b;\n"
+      "    c <= d;\n"
+      "end\n"
+      "default : begin\n"
+      "    a = b;\n"
+      "    c <= d;\n"
+      "end\n"
+      "endcase";
+  EXPECT_EQ(c.toString(), expected_str);
+}
+
 TEST(BasicTests, TestAlwaysEmpty) {
   std::vector<std::variant<
       std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::PosEdge>,

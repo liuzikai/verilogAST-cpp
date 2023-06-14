@@ -504,6 +504,25 @@ std::string If::toString() {
   return if_str;
 }
 
+std::string Case::toString() {
+  std::string case_str = "";
+  case_str += "case (";
+  case_str += this->expr->toString();
+  case_str += ")\n";
+
+  for (auto &c :cases) {
+    case_str += variant_to_string(c.first);
+    case_str += " : begin\n";
+    for (auto &statement : c.second) {
+      case_str += add_tab(statement->toString());
+    }
+    case_str += "end\n";
+  }
+
+  case_str += "endcase";
+  return case_str;
+}
+
 std::string File::toString() {
   std::string file_str = "";
 

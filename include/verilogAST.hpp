@@ -386,7 +386,8 @@ class Concat : public Expression {
   std::vector<std::unique_ptr<Expression>> args;
   bool unpacked;
 
-  explicit Concat(std::vector<std::unique_ptr<Expression>> args, bool unpacked = false)
+  explicit Concat(std::vector<std::unique_ptr<Expression>> args,
+                  bool unpacked = false)
       : args(std::move(args)), unpacked(unpacked){};
   Concat(const Concat& rhs) {
     for (const auto& arg : rhs.args) args.push_back(arg->clone());
@@ -420,7 +421,8 @@ class NegEdge : public Node {
  public:
   std::unique_ptr<Identifier> value;
 
-  explicit NegEdge(std::unique_ptr<Identifier> value) : value(std::move(value)){};
+  explicit NegEdge(std::unique_ptr<Identifier> value)
+      : value(std::move(value)){};
   std::string toString() override;
   ~NegEdge(){};
 };
@@ -429,7 +431,8 @@ class PosEdge : public Node {
  public:
   std::unique_ptr<Identifier> value;
 
-  explicit PosEdge(std::unique_ptr<Identifier> value) : value(std::move(value)){};
+  explicit PosEdge(std::unique_ptr<Identifier> value)
+      : value(std::move(value)){};
   std::string toString() override;
   ~PosEdge(){};
 };
@@ -749,9 +752,10 @@ class IfNDef : public IfMacro {
 
 class Wire : public Declaration {
  public:
-  explicit Wire(std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Index>,
-                    std::unique_ptr<Slice>, std::unique_ptr<Vector>>
-           value)
+  explicit Wire(
+      std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Index>,
+                   std::unique_ptr<Slice>, std::unique_ptr<Vector>>
+          value)
       : Declaration(std::move(value), "wire"){};
   ~Wire(){};
 };
@@ -759,8 +763,8 @@ class Wire : public Declaration {
 class Reg : public Declaration {
  public:
   explicit Reg(std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Index>,
-                   std::unique_ptr<Slice>, std::unique_ptr<Vector>>
-          value)
+                            std::unique_ptr<Slice>, std::unique_ptr<Vector>>
+                   value)
       : Declaration(std::move(value), "reg"){};
   ~Reg(){};
 };
@@ -902,6 +906,38 @@ class If : public BehavioralStatement {
 
   std::string toString() override;
   ~If(){};
+};
+
+class Default : Node {
+ public:
+  std::string toString() override { return "default"; };
+  ~Default(){};
+};
+
+class Case : public BehavioralStatement {
+ public:
+  std::unique_ptr<Expression> expr;
+  std::vector<std::pair<
+      std::variant<std::unique_ptr<Expression>, std::unique_ptr<Default>>,
+      std::vector<std::unique_ptr<BehavioralStatement>>>>
+      cases;
+  std::string keyword;
+  Case(std::unique_ptr<Expression> expr,
+       std::vector<std::pair<
+           std::variant<std::unique_ptr<Expression>, std::unique_ptr<Default>>,
+           std::vector<std::unique_ptr<BehavioralStatement>>>>
+           cases,
+       std::string keyword = "case")
+      : expr(std::move(expr)),
+        cases(std::move(cases)),
+        keyword(std::move(keyword)) {
+    if (this->cases.empty()) {
+      throw std::runtime_error("vAST::Case expects non-empty cases");
+    }
+  };
+  // Multiple inheritance forces us to have to explicitly state this?
+  std::string toString() override;
+  ~Case(){};
 };
 
 class AbstractModule : public Node {};
