@@ -44,7 +44,7 @@ class Expression : public Node {
   virtual Expression* clone_impl() const = 0;
 
  public:
-  virtual std::string toString() = 0;
+  virtual std::string toString() override = 0;
   virtual ~Expression() = default;
   auto clone() const { return std::unique_ptr<Expression>(clone_impl()); }
 };
@@ -554,7 +554,7 @@ class StringPort : public AbstractPort {
   std::string value;
 
   explicit StringPort(std::string value) : value(value){};
-  std::string toString() { return value; };
+  std::string toString() override { return value; };
   ~StringPort(){};
 };
 
@@ -582,7 +582,7 @@ class BlockComment : public StructuralStatement, public BehavioralStatement {
   std::string value;
 
   explicit BlockComment(std::string value) : value(value){};
-  std::string toString() { return "/*\n" + value + "\n*/"; };
+  std::string toString() override { return "/*\n" + value + "\n*/"; };
   ~BlockComment(){};
 };
 
@@ -595,7 +595,7 @@ class InlineVerilog : public StructuralStatement {
   std::string value;
 
   explicit InlineVerilog(std::string value) : value(value){};
-  std::string toString() { return value; };
+  std::string toString() override { return value; };
   ~InlineVerilog(){};
 };
 
@@ -711,7 +711,7 @@ class IfMacro : public StructuralStatement {
 };
 
 class IfDef : public IfMacro {
-  std::string getMacroString() { return "`ifdef "; };
+  std::string getMacroString() override { return "`ifdef "; };
 
  public:
   IfDef(std::string condition_str,
@@ -731,7 +731,7 @@ class IfDef : public IfMacro {
 };
 
 class IfNDef : public IfMacro {
-  std::string getMacroString() { return "`ifndef "; };
+  std::string getMacroString() override { return "`ifndef "; };
 
  public:
   IfNDef(std::string condition_str,
@@ -808,7 +808,7 @@ class ContinuousAssign : public StructuralStatement, public Assign {
                    std::unique_ptr<Expression> value)
       : Assign(std::move(target), std::move(value), "assign "){};
   // Multiple inheritance forces us to have to explicitly state this?
-  std::string toString() { return Assign::toString(); };
+  std::string toString() override { return Assign::toString(); };
   ~ContinuousAssign(){};
 };
 
@@ -822,7 +822,7 @@ class BlockingAssign : public BehavioralAssign, public Assign {
                  std::unique_ptr<Expression> value)
       : Assign(std::move(target), std::move(value), ""){};
   // Multiple inheritance forces us to have to explicitly state this?
-  std::string toString() { return Assign::toString(); };
+  std::string toString() override { return Assign::toString(); };
   ~BlockingAssign(){};
 };
 
@@ -834,7 +834,7 @@ class NonBlockingAssign : public BehavioralAssign, public Assign {
                     std::unique_ptr<Expression> value)
       : Assign(std::move(target), std::move(value), "", "<="){};
   // Multiple inheritance forces us to have to explicitly state this?
-  std::string toString() { return Assign::toString(); };
+  std::string toString() override { return Assign::toString(); };
   ~NonBlockingAssign(){};
 };
 
@@ -843,12 +843,12 @@ class CallStmt : public BehavioralStatement, public Call {
   CallStmt(std::string func, std::vector<std::unique_ptr<Expression>> args)
       : Call(std::move(func), std::move(args)){};
   explicit CallStmt(std::string func) : Call(std::move(func)){};
-  std::string toString() { return Call::toString() + ";"; };
+  std::string toString() override { return Call::toString() + ";"; };
 };
 
 class Star : Node {
  public:
-  std::string toString() { return "*"; };
+  std::string toString() override { return "*"; };
   ~Star(){};
 };
 
@@ -996,7 +996,7 @@ class StringModule : public AbstractModule {
   std::string definition;
 
   explicit StringModule(std::string definition) : definition(definition){};
-  std::string toString() { return definition; };
+  std::string toString() override { return definition; };
   ~StringModule(){};
 };
 
