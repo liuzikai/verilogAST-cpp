@@ -586,6 +586,13 @@ class BlockComment : public StructuralStatement, public BehavioralStatement {
   ~BlockComment(){};
 };
 
+class EmptyLines : public StructuralStatement, public BehavioralStatement {
+ public:
+  unsigned count;
+  explicit EmptyLines(unsigned count = 1) : count(count){};
+  std::string toString() override { return std::string(count, '\n'); };
+};
+
 class InlineVerilog : public StructuralStatement {
   // Serializes into `value`, so allows the inclusion of arbitrary verilog
   // statement(s) in the body of a module definition.  The contents of
@@ -810,6 +817,15 @@ class ContinuousAssign : public StructuralStatement, public Assign {
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override { return Assign::toString(); };
   ~ContinuousAssign(){};
+};
+
+class Parameter : public StructuralStatement, public Assign {
+ public:
+  Parameter(std::unique_ptr<Identifier> name, std::unique_ptr<Expression> value)
+      : Assign(std::move(name), std::move(value), "parameter "){};
+  // Multiple inheritance forces us to have to explicitly state this?
+  std::string toString() override { return Assign::toString(); };
+  ~Parameter(){};
 };
 
 class BehavioralAssign : public BehavioralStatement {};
