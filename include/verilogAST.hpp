@@ -19,12 +19,11 @@ class WithComment : public T {
 
  public:
   WithComment(std::unique_ptr<T> node, std::string comment)
-      : T(std::move(node)), comment(comment){};
+      : T(std::move(node)), comment(std::move(comment)){};
 
   std::string toString() override {
     return T::toString() + "/*" + this->comment + "*/";
   };
-  ~WithComment(){};
 };
 
 template <typename T>
@@ -45,7 +44,6 @@ class Expression : public Node {
 
  public:
   virtual std::string toString() override = 0;
-  virtual ~Expression() = default;
   auto clone() const { return std::unique_ptr<Expression>(clone_impl()); }
 };
 
@@ -53,7 +51,7 @@ enum Radix { BINARY, OCTAL, HEX, DECIMAL };
 
 class NumericLiteral : public Expression {
  protected:
-  virtual NumericLiteral* clone_impl() const override {
+  NumericLiteral* clone_impl() const override {
     return new NumericLiteral(this->value, this->size, this->_signed,
                               this->radix, this->always_codegen_size);
   };
@@ -76,7 +74,7 @@ class NumericLiteral : public Expression {
 
   NumericLiteral(std::string value, unsigned int size, bool _signed,
                  Radix radix, bool always_codegen_size)
-      : value(value),
+      : value(std::move(value)),
         size(size),
         _signed(_signed),
         radix(radix),
@@ -84,19 +82,28 @@ class NumericLiteral : public Expression {
 
   NumericLiteral(std::string value, unsigned int size, bool _signed,
                  Radix radix)
-      : value(value), size(size), _signed(_signed), radix(radix){};
+      : value(std::move(value)), size(size), _signed(_signed), radix(radix){};
 
   NumericLiteral(std::string value, unsigned int size, bool _signed)
-      : value(value), size(size), _signed(_signed), radix(Radix::DECIMAL){};
+      : value(std::move(value)),
+        size(size),
+        _signed(_signed),
+        radix(Radix::DECIMAL){};
 
   NumericLiteral(std::string value, unsigned int size)
-      : value(value), size(size), _signed(false), radix(Radix::DECIMAL){};
+      : value(std::move(value)),
+        size(size),
+        _signed(false),
+        radix(Radix::DECIMAL){};
 
   explicit NumericLiteral(std::string value)
-      : value(value), size(32), _signed(false), radix(Radix::DECIMAL){};
+      : value(std::move(value)),
+        size(32),
+        _signed(false),
+        radix(Radix::DECIMAL){};
 
   NumericLiteral(std::string value, Radix radix)
-      : value(value), size(32), _signed(false), radix(radix){};
+      : value(std::move(value)), size(32), _signed(false), radix(radix){};
 
   std::string toString() override;
   auto clone() const { return std::unique_ptr<NumericLiteral>(clone_impl()); }
@@ -104,7 +111,7 @@ class NumericLiteral : public Expression {
 
 class Cast : public Expression {
  protected:
-  virtual Cast* clone_impl() const override {
+  Cast* clone_impl() const override {
     return new Cast(this->width, this->expr->clone());
   };
 
@@ -119,16 +126,13 @@ class Cast : public Expression {
   auto clone() const { return std::unique_ptr<Cast>(clone_impl()); }
 
   std::string toString() override;
-  ~Cast(){};
 };
 
 // TODO also need a string literal, as strings can be used as parameter values
 
 class Identifier : public Expression {
  protected:
-  virtual Identifier* clone_impl() const override {
-    return new Identifier(*this);
-  };
+  Identifier* clone_impl() const override { return new Identifier(*this); };
 
  public:
   std::string value;
@@ -137,17 +141,16 @@ class Identifier : public Expression {
   Identifier(const Identifier& rhs) : value(rhs.value){};
   auto clone() const { return std::unique_ptr<Identifier>(clone_impl()); }
 
-  bool operator==(const Identifier& rhs) { return (this->value == rhs.value); }
+  bool operator==(const Identifier& rhs) const {
+    return (this->value == rhs.value);
+  }
 
   std::string toString() override;
-  ~Identifier(){};
 };
 
 class Attribute : public Expression {
  protected:
-  virtual Attribute* clone_impl() const override {
-    return new Attribute(*this);
-  };
+  Attribute* clone_impl() const override { return new Attribute(*this); };
 
  public:
   std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Attribute>> value;
@@ -157,7 +160,7 @@ class Attribute : public Expression {
       std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Attribute>>
           value,
       std::string attr)
-      : value(std::move(value)), attr(attr){};
+      : value(std::move(value)), attr(std::move(attr)){};
 
   Attribute(const Attribute& rhs)
       : value(std::visit(
@@ -172,32 +175,31 @@ class Attribute : public Expression {
     return std::unique_ptr<Attribute>(clone_impl());
   }
 
-  bool operator==(const Attribute& rhs) {
+  bool operator==(const Attribute& rhs) const {
     return (this->value == rhs.value && this->attr == rhs.attr);
   }
 
   std::string toString() override;
-  ~Attribute(){};
 };
 
 class String : public Expression {
  protected:
-  virtual String* clone_impl() const override { return new String(*this); };
+  String* clone_impl() const override { return new String(*this); };
 
  public:
   std::string value;
 
-  explicit String(std::string value) : value(value){};
+  explicit String(std::string value) : value(std::move(value)){};
   String(const String& rhs) : value(rhs.value){};
 
   std::string toString() override;
-  ~String(){};
+
   auto clone() const { return std::unique_ptr<String>(clone_impl()); }
 };
 
 class Slice : public Expression {
  protected:
-  virtual Slice* clone_impl() const override {
+  Slice* clone_impl() const override {
     return new Slice(this->expr->clone(), this->high_index->clone(),
                      this->low_index->clone());
   };
@@ -218,13 +220,13 @@ class Slice : public Expression {
         high_index(rhs.high_index->clone()),
         low_index(rhs.low_index->clone()){};
   std::string toString() override;
-  ~Slice(){};
+
   auto clone() const { return std::unique_ptr<Slice>(clone_impl()); }
 };
 
 class Index : public Expression {
  protected:
-  virtual Index* clone_impl() const override {
+  Index* clone_impl() const override {
     return new Index(this->clone_index_value(), this->index->clone());
   };
 
@@ -244,7 +246,7 @@ class Index : public Expression {
       : value(rhs.clone_index_value()), index(rhs.index->clone()){};
 
   std::string toString() override;
-  ~Index(){};
+
   auto clone() const { return std::unique_ptr<Index>(clone_impl()); }
 
  private:
@@ -288,7 +290,7 @@ enum BinOp {
 
 class BinaryOp : public Expression {
  protected:
-  virtual BinaryOp* clone_impl() const override {
+  BinaryOp* clone_impl() const override {
     return new BinaryOp(this->left->clone(), this->op, this->right->clone());
   };
 
@@ -304,7 +306,7 @@ class BinaryOp : public Expression {
       : left(rhs.left->clone()), op(rhs.op), right(rhs.right->clone()){};
 
   std::string toString() override;
-  ~BinaryOp(){};
+
   auto clone() const { return std::unique_ptr<BinaryOp>(clone_impl()); }
 };
 
@@ -326,7 +328,7 @@ enum UnOp {
 
 class UnaryOp : public Expression {
  protected:
-  virtual UnaryOp* clone_impl() const override {
+  UnaryOp* clone_impl() const override {
     return new UnaryOp(this->operand->clone(), this->op);
   };
 
@@ -340,13 +342,13 @@ class UnaryOp : public Expression {
   UnaryOp(const UnaryOp& rhs) : operand(rhs.operand->clone()), op(rhs.op){};
 
   std::string toString() override;
-  ~UnaryOp(){};
+
   auto clone() const { return std::unique_ptr<UnaryOp>(clone_impl()); }
 };
 
 class TernaryOp : public Expression {
  protected:
-  virtual TernaryOp* clone_impl() const override {
+  TernaryOp* clone_impl() const override {
     return new TernaryOp(this->cond->clone(), this->true_value->clone(),
                          this->false_value->clone());
   };
@@ -368,7 +370,7 @@ class TernaryOp : public Expression {
         false_value(rhs.false_value->clone()){};
 
   std::string toString() override;
-  ~TernaryOp(){};
+
   auto clone() const { return std::unique_ptr<TernaryOp>(clone_impl()); }
 };
 
@@ -400,7 +402,7 @@ class Concat : public Expression {
 
 class Replicate : public Expression {
  protected:
-  virtual Replicate* clone_impl() const override {
+  Replicate* clone_impl() const override {
     return new Replicate(this->num->clone(), this->value->clone());
   };
 
@@ -424,7 +426,6 @@ class NegEdge : public Node {
   explicit NegEdge(std::unique_ptr<Identifier> value)
       : value(std::move(value)){};
   std::string toString() override;
-  ~NegEdge(){};
 };
 
 class PosEdge : public Node {
@@ -434,7 +435,6 @@ class PosEdge : public Node {
   explicit PosEdge(std::unique_ptr<Identifier> value)
       : value(std::move(value)){};
   std::string toString() override;
-  ~PosEdge(){};
 };
 
 class Call {
@@ -443,15 +443,14 @@ class Call {
   std::vector<std::unique_ptr<Expression>> args;
 
   Call(std::string func, std::vector<std::unique_ptr<Expression>> args)
-      : func(func), args(std::move(args)){};
-  explicit Call(std::string func) : func(func){};
+      : func(std::move(func)), args(std::move(args)){};
+  explicit Call(std::string func) : func(std::move(func)){};
   std::string toString();
-  ~Call(){};
 };
 
 class CallExpr : public Expression, public Call {
  protected:
-  virtual CallExpr* clone_impl() const override {
+  CallExpr* clone_impl() const override {
     std::vector<std::unique_ptr<Expression>> new_args;
     for (const auto& arg : this->args) {
       new_args.push_back(arg->clone());
@@ -463,7 +462,7 @@ class CallExpr : public Expression, public Call {
   CallExpr(std::string func, std::vector<std::unique_ptr<Expression>> args)
       : Call(std::move(func), std::move(args)){};
   explicit CallExpr(std::string func) : Call(std::move(func)){};
-  CallExpr(const CallExpr& rhs) : Call(std::move(rhs.func)) {
+  CallExpr(const CallExpr& rhs) : Call(rhs.func) {
     for (const auto& arg : rhs.args) {
       args.push_back(arg->clone());
     }
@@ -490,7 +489,6 @@ class Vector : public Node {
          std::unique_ptr<Expression> lsb)
       : id(std::move(id)), msb(std::move(msb)), lsb(std::move(lsb)){};
   std::string toString() override;
-  ~Vector(){};
 };
 
 class NDVector : public Vector {
@@ -507,7 +505,6 @@ class NDVector : public Vector {
       : Vector(std::move(id), std::move(msb), std::move(lsb)),
         outer_dims(std::move(outer_dims)){};
   std::string toString() override;
-  ~NDVector(){};
 };
 
 class PackedNDVector : public NDVector {
@@ -522,7 +519,6 @@ class PackedNDVector : public NDVector {
                  std::move(outer_dims)) {}
 
   std::string toString() override;
-  ~PackedNDVector() = default;
 };
 
 class Port : public AbstractPort {
@@ -546,16 +542,14 @@ class Port : public AbstractPort {
         direction(port->direction),
         data_type(port->data_type){};
   std::string toString() override;
-  ~Port(){};
 };
 
 class StringPort : public AbstractPort {
  public:
   std::string value;
 
-  explicit StringPort(std::string value) : value(value){};
+  explicit StringPort(std::string value) : value(std::move(value)){};
   std::string toString() override { return value; };
-  ~StringPort(){};
 };
 
 class Statement : public Node {};
@@ -570,20 +564,18 @@ class SingleLineComment : public StructuralStatement,
   std::unique_ptr<Statement> statement;  // optional
 
   explicit SingleLineComment(std::string value)
-      : value(value), statement(std::unique_ptr<Statement>{}){};
+      : value(std::move(value)), statement(std::unique_ptr<Statement>{}){};
   SingleLineComment(std::string value, std::unique_ptr<Statement> statement)
-      : value(value), statement(std::move(statement)){};
+      : value(std::move(value)), statement(std::move(statement)){};
   std::string toString() override;
-  ~SingleLineComment(){};
 };
 
 class BlockComment : public StructuralStatement, public BehavioralStatement {
  public:
   std::string value;
 
-  explicit BlockComment(std::string value) : value(value){};
+  explicit BlockComment(std::string value) : value(std::move(value)){};
   std::string toString() override { return "/*\n" + value + "\n*/"; };
-  ~BlockComment(){};
 };
 
 class EmptyLines : public StructuralStatement, public BehavioralStatement {
@@ -601,9 +593,8 @@ class InlineVerilog : public StructuralStatement {
  public:
   std::string value;
 
-  explicit InlineVerilog(std::string value) : value(value){};
+  explicit InlineVerilog(std::string value) : value(std::move(value)){};
   std::string toString() override { return value; };
-  ~InlineVerilog(){};
 };
 
 typedef std::vector<std::pair<
@@ -662,12 +653,11 @@ class ModuleInstantiation : public StructuralStatement {
   ModuleInstantiation(std::string module_name, Parameters parameters,
                       std::string instance_name,
                       std::unique_ptr<Connections> connections)
-      : module_name(module_name),
+      : module_name(std::move(module_name)),
         parameters(std::move(parameters)),
-        instance_name(instance_name),
+        instance_name(std::move(instance_name)),
         connections(std::move(connections)){};
   std::string toString() override;
-  ~ModuleInstantiation(){};
 };
 
 class Declaration : public Node {
@@ -681,10 +671,9 @@ class Declaration : public Node {
                            std::unique_ptr<Slice>, std::unique_ptr<Vector>>
                   value,
               std::string decl)
-      : decl(decl), value(std::move(value)){};
+      : decl(std::move(decl)), value(std::move(value)){};
 
   std::string toString() override;
-  virtual ~Declaration() = default;
 };
 
 class IfMacro : public StructuralStatement {
@@ -702,7 +691,8 @@ class IfMacro : public StructuralStatement {
           std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                    std::unique_ptr<Declaration>>>
               true_body)
-      : condition_str(condition_str), true_body(std::move(true_body)){};
+      : condition_str(std::move(condition_str)),
+        true_body(std::move(true_body)){};
   IfMacro(std::string condition_str,
           std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                    std::unique_ptr<Declaration>>>
@@ -710,10 +700,10 @@ class IfMacro : public StructuralStatement {
           std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                    std::unique_ptr<Declaration>>>
               else_body)
-      : condition_str(condition_str),
+      : condition_str(std::move(condition_str)),
         true_body(std::move(true_body)),
         else_body(std::move(else_body)){};
-  ~IfMacro(){};
+
   std::string toString() override;
 };
 
@@ -725,7 +715,7 @@ class IfDef : public IfMacro {
         std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                  std::unique_ptr<Declaration>>>
             body)
-      : IfMacro(condition_str, std::move(body)){};
+      : IfMacro(std::move(condition_str), std::move(body)){};
   IfDef(std::string condition_str,
         std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                  std::unique_ptr<Declaration>>>
@@ -733,8 +723,8 @@ class IfDef : public IfMacro {
         std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                  std::unique_ptr<Declaration>>>
             else_body)
-      : IfMacro(condition_str, std::move(true_body), std::move(else_body)){};
-  ~IfDef(){};
+      : IfMacro(std::move(condition_str), std::move(true_body),
+                std::move(else_body)){};
 };
 
 class IfNDef : public IfMacro {
@@ -745,7 +735,7 @@ class IfNDef : public IfMacro {
          std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                   std::unique_ptr<Declaration>>>
              body)
-      : IfMacro(condition_str, std::move(body)){};
+      : IfMacro(std::move(condition_str), std::move(body)){};
   IfNDef(std::string condition_str,
          std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                   std::unique_ptr<Declaration>>>
@@ -753,8 +743,8 @@ class IfNDef : public IfMacro {
          std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                   std::unique_ptr<Declaration>>>
              else_body)
-      : IfMacro(condition_str, std::move(true_body), std::move(else_body)){};
-  ~IfNDef(){};
+      : IfMacro(std::move(condition_str), std::move(true_body),
+                std::move(else_body)){};
 };
 
 class Wire : public Declaration {
@@ -764,7 +754,6 @@ class Wire : public Declaration {
                    std::unique_ptr<Slice>, std::unique_ptr<Vector>>
           value)
       : Declaration(std::move(value), "wire"){};
-  ~Wire(){};
 };
 
 class Reg : public Declaration {
@@ -773,7 +762,6 @@ class Reg : public Declaration {
                             std::unique_ptr<Slice>, std::unique_ptr<Vector>>
                    value)
       : Declaration(std::move(value), "reg"){};
-  ~Reg(){};
 };
 
 class Assign : public Node {
@@ -791,7 +779,7 @@ class Assign : public Node {
          std::unique_ptr<Expression> value, std::string prefix)
       : target(std::move(target)),
         value(std::move(value)),
-        prefix(prefix),
+        prefix(std::move(prefix)),
         symbol("="){};
   Assign(std::variant<std::unique_ptr<Identifier>, std::unique_ptr<Index>,
                       std::unique_ptr<Slice>>
@@ -800,8 +788,8 @@ class Assign : public Node {
          std::string symbol)
       : target(std::move(target)),
         value(std::move(value)),
-        prefix(prefix),
-        symbol(symbol){};
+        prefix(std::move(prefix)),
+        symbol(std::move(symbol)){};
 
   std::string toString() override;
   virtual ~Assign() = default;
@@ -816,7 +804,6 @@ class ContinuousAssign : public StructuralStatement, public Assign {
       : Assign(std::move(target), std::move(value), "assign "){};
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override { return Assign::toString(); };
-  ~ContinuousAssign(){};
 };
 
 class Parameter : public StructuralStatement, public Assign {
@@ -825,7 +812,6 @@ class Parameter : public StructuralStatement, public Assign {
       : Assign(std::move(name), std::move(value), "parameter "){};
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override { return Assign::toString(); };
-  ~Parameter(){};
 };
 
 class BehavioralAssign : public BehavioralStatement {};
@@ -839,7 +825,6 @@ class BlockingAssign : public BehavioralAssign, public Assign {
       : Assign(std::move(target), std::move(value), ""){};
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override { return Assign::toString(); };
-  ~BlockingAssign(){};
 };
 
 class NonBlockingAssign : public BehavioralAssign, public Assign {
@@ -851,7 +836,6 @@ class NonBlockingAssign : public BehavioralAssign, public Assign {
       : Assign(std::move(target), std::move(value), "", "<="){};
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override { return Assign::toString(); };
-  ~NonBlockingAssign(){};
 };
 
 class CallStmt : public BehavioralStatement, public Call {
@@ -865,7 +849,6 @@ class CallStmt : public BehavioralStatement, public Call {
 class Star : Node {
  public:
   std::string toString() override { return "*"; };
-  ~Star(){};
 };
 
 class Always : public StructuralStatement {
@@ -889,7 +872,6 @@ class Always : public StructuralStatement {
     this->sensitivity_list = std::move(sensitivity_list);
   };
   std::string toString() override;
-  ~Always(){};
 };
 
 class If : public BehavioralStatement {
@@ -921,13 +903,11 @@ class If : public BehavioralStatement {
         else_body(std::move(else_body)){};
 
   std::string toString() override;
-  ~If(){};
 };
 
 class Default : Node {
  public:
   std::string toString() override { return "default"; };
-  ~Default(){};
 };
 
 class Case : public BehavioralStatement {
@@ -953,7 +933,6 @@ class Case : public BehavioralStatement {
   };
   // Multiple inheritance forces us to have to explicitly state this?
   std::string toString() override;
-  ~Case(){};
 };
 
 class AbstractModule : public Node {};
@@ -971,7 +950,7 @@ class Module : public AbstractModule {
   // overrides the `body` field (but reuses the other fields)
   Module(std::string name, std::vector<std::unique_ptr<AbstractPort>> ports,
          Parameters parameters)
-      : name(name),
+      : name(std::move(name)),
         ports(std::move(ports)),
         parameters(std::move(parameters)){};
 
@@ -980,7 +959,7 @@ class Module : public AbstractModule {
                                   std::unique_ptr<Declaration>>>
              body,
          Parameters parameters)
-      : name(name),
+      : name(std::move(name)),
         ports(std::move(ports)),
         body(std::move(body)),
         parameters(std::move(parameters)){};
@@ -989,10 +968,9 @@ class Module : public AbstractModule {
          std::vector<std::variant<std::unique_ptr<StructuralStatement>,
                                   std::unique_ptr<Declaration>>>
              body)
-      : name(name), ports(std::move(ports)), body(std::move(body)){};
+      : name(std::move(name)), ports(std::move(ports)), body(std::move(body)){};
 
   std::string toString() override;
-  ~Module(){};
 };
 
 class StringBodyModule : public Module {
@@ -1002,18 +980,18 @@ class StringBodyModule : public Module {
   StringBodyModule(std::string name,
                    std::vector<std::unique_ptr<AbstractPort>> ports,
                    std::string body, Parameters parameters)
-      : Module(name, std::move(ports), std::move(parameters)), body(body){};
+      : Module(std::move(name), std::move(ports), std::move(parameters)),
+        body(std::move(body)){};
   std::string toString() override;
-  ~StringBodyModule(){};
 };
 
 class StringModule : public AbstractModule {
  public:
   std::string definition;
 
-  explicit StringModule(std::string definition) : definition(definition){};
+  explicit StringModule(std::string definition)
+      : definition(std::move(definition)){};
   std::string toString() override { return definition; };
-  ~StringModule(){};
 };
 
 class File : public Node {
@@ -1023,7 +1001,6 @@ class File : public Node {
   explicit File(std::vector<std::unique_ptr<AbstractModule>>& modules)
       : modules(std::move(modules)){};
   std::string toString() override;
-  ~File(){};
 };
 
 // Helper functions for constructing unique pointers
