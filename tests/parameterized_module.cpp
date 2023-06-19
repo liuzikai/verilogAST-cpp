@@ -61,11 +61,11 @@ TEST(ParameterizedModuleTests, TestEq) {
       "module coreir_eq #(\n"
       "    parameter width = 1\n"
       ") (\n"
-      "    input [width - 1:0] in0,\n"
-      "    input [width - 1:0] in1,\n"
+      "    input [(width - 1):0] in0,\n"
+      "    input [(width - 1):0] in1,\n"
       "    output out\n"
       ");\n"
-      "assign out = in0 == in1;\n"
+      "assign out = (in0 == in1);\n"
       "endmodule\n";
   EXPECT_EQ(coreir_eq->toString(), expected_str);
 }

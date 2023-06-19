@@ -102,13 +102,13 @@ TEST(TransformerTests, TestXtoZ) {
       std::make_unique<vAST::CallExpr>("my_func", std::move(call_args));
   XtoZ transformer;
   EXPECT_EQ(transformer.visit(std::move(expr))->toString(),
-            "my_func({z,b} ? z.j[3:1] + (~ y[1]) : {(2){z}}, 5'(z))");
+            "my_func(({z,b} ? (z.j[3:1] + ~y[1]) : {2{z}}), 5'(z))");
 }
 TEST(TransformerTests, TestReplaceNameWithExpr) {
   std::unique_ptr<vAST::Expression> expr = vAST::make_binop(
       vAST::make_id("x"), vAST::BinOp::MUL, vAST::make_id("y"));
   ReplaceNameWithExpr transformer;
-  EXPECT_EQ(transformer.visit(std::move(expr))->toString(), "(z - w) * y");
+  EXPECT_EQ(transformer.visit(std::move(expr))->toString(), "((z - w) * y)");
 }
 TEST(TransformerTests, TestAlways) {
   std::vector<std::variant<

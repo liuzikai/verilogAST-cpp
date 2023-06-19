@@ -23,20 +23,6 @@ std::string join(std::vector<std::string> vec, std::string separator) {
 
 namespace verilogAST {
 
-std::string expr_to_string_with_parens(std::unique_ptr<Expression> &expr) {
-  // FIXME: For now we just do naive precedence logic
-  std::string expr_str = expr->toString();
-  if (dynamic_cast<Identifier *>(expr.get())) {
-  } else if (dynamic_cast<NumericLiteral *>(expr.get())) {
-  } else if (dynamic_cast<Index *>(expr.get())) {
-  } else if (dynamic_cast<Slice *>(expr.get())) {
-  } else if (dynamic_cast<Attribute *>(expr.get())) {
-  } else {
-    expr_str = "(" + expr_str + ")";
-  }
-  return expr_str;
-}
-
 std::string NumericLiteral::toString() {
   std::string signed_str = _signed ? "s" : "";
 
@@ -144,8 +130,7 @@ std::string Index::toString() {
 }
 
 std::string Slice::toString() {
-  std::string expr_str = expr_to_string_with_parens(expr);
-  return expr_str + '[' + high_index->toString() + ':' + low_index->toString() +
+  return expr->toString() + '[' + high_index->toString() + ':' + low_index->toString() +
          ']';
 }
 
@@ -236,9 +221,7 @@ std::string BinaryOp::toString() {
       op_str = ">=";
       break;
   }
-  std::string lstr = expr_to_string_with_parens(left);
-  std::string rstr = expr_to_string_with_parens(right);
-  return lstr + ' ' + op_str + ' ' + rstr;
+  return '(' + left->toString() + ' ' + op_str + ' ' + right->toString() + ')';
 }
 
 std::string UnaryOp::toString() {
@@ -278,13 +261,13 @@ std::string UnaryOp::toString() {
       op_str = "-";
       break;
   }
-  std::string operand_str = expr_to_string_with_parens(operand);
-  return op_str + ' ' + operand_str;
+  // Unary operators have higher precedences so no parenthesis
+  return op_str + operand->toString();
 }
 
 std::string TernaryOp::toString() {
-  return cond->toString() + " ? " + true_value->toString() + " : " +
-         false_value->toString();
+  return '(' + cond->toString() + " ? " + true_value->toString() + " : " +
+         false_value->toString() + ')';
 }
 
 std::string Concat::toString() {
@@ -300,8 +283,7 @@ std::string Concat::toString() {
 }
 
 std::string Replicate::toString() {
-  // TODO: Insert parens using precedence logic
-  return "{(" + num->toString() + "){" + value->toString() + "}" + "}";
+  return "{" + num->toString() + "{" + value->toString() + "}" + "}";
 }
 
 std::string NegEdge::toString() { return "negedge " + value->toString(); }
