@@ -581,8 +581,10 @@ class BlockComment : public StructuralStatement, public BehavioralStatement {
 class EmptyLines : public StructuralStatement, public BehavioralStatement {
  public:
   unsigned count;
-  explicit EmptyLines(unsigned count = 1) : count(count){};
-  std::string toString() override { return std::string(count, '\n'); };
+  explicit EmptyLines(unsigned count = 1) : count(count) {
+    assert(count >= 1);
+  };
+  std::string toString() override { return std::string(count - 1, '\n'); };
 };
 
 class InlineVerilog : public StructuralStatement {
