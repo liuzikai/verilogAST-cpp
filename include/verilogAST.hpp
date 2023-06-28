@@ -70,37 +70,15 @@ class NumericLiteral : public Expression {
   Radix radix;        // default decimal
   // always generate size prefix (default false will not codegen size for 32
   // bit literals)
-  bool always_codegen_size = false;
+  bool always_codegen_size;
 
-  NumericLiteral(std::string value, unsigned int size, bool _signed,
-                 Radix radix, bool always_codegen_size)
+  NumericLiteral(std::string value, unsigned int size = 32, bool _signed = false,
+                 Radix radix = Radix::DECIMAL, bool always_codegen_size = false)
       : value(std::move(value)),
         size(size),
         _signed(_signed),
         radix(radix),
         always_codegen_size(always_codegen_size){};
-
-  NumericLiteral(std::string value, unsigned int size, bool _signed,
-                 Radix radix)
-      : value(std::move(value)), size(size), _signed(_signed), radix(radix){};
-
-  NumericLiteral(std::string value, unsigned int size, bool _signed)
-      : value(std::move(value)),
-        size(size),
-        _signed(_signed),
-        radix(Radix::DECIMAL){};
-
-  NumericLiteral(std::string value, unsigned int size)
-      : value(std::move(value)),
-        size(size),
-        _signed(false),
-        radix(Radix::DECIMAL){};
-
-  explicit NumericLiteral(std::string value)
-      : value(std::move(value)),
-        size(32),
-        _signed(false),
-        radix(Radix::DECIMAL){};
 
   NumericLiteral(std::string value, Radix radix)
       : value(std::move(value)), size(32), _signed(false), radix(radix){};
