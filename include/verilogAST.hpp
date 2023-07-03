@@ -72,8 +72,9 @@ class NumericLiteral : public Expression {
   // bit literals)
   bool always_codegen_size;
 
-  NumericLiteral(std::string value, unsigned int size = 32, bool _signed = false,
-                 Radix radix = Radix::DECIMAL, bool always_codegen_size = false)
+  NumericLiteral(std::string value, unsigned int size = 32,
+                 bool _signed = false, Radix radix = Radix::DECIMAL,
+                 bool always_codegen_size = false)
       : value(std::move(value)),
         size(size),
         _signed(_signed),
@@ -881,6 +882,10 @@ class If : public BehavioralStatement {
       : cond(std::move(cond)),
         true_body(std::move(true_body)),
         else_body(std::move(else_body)){};
+
+  If(std::unique_ptr<Expression> cond,
+     std::vector<std::unique_ptr<BehavioralStatement>> true_body)
+      : cond(std::move(cond)), true_body(std::move(true_body)){};
 
   std::string toString() override;
 };
