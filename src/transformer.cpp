@@ -57,7 +57,7 @@ std::unique_ptr<Expression> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<CallExpr>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 
@@ -164,7 +164,7 @@ Transformer::visit(
           value.release();
           return this->visit(std::unique_ptr<Vector>(ptr));
         }
-        throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+        assert(false && "Unreachable");  // LCOV_EXCL_LINE
         return std::move(value);                  // LCOV_EXCL_LINE
       },
       node);
@@ -300,7 +300,7 @@ std::unique_ptr<Declaration> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<Reg>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 
@@ -330,7 +330,7 @@ std::unique_ptr<BehavioralStatement> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<If>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 
@@ -388,7 +388,7 @@ std::unique_ptr<AbstractPort> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<StringPort>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 
@@ -422,7 +422,7 @@ std::unique_ptr<StructuralStatement> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<IfMacro>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 
@@ -479,7 +479,7 @@ std::unique_ptr<AbstractModule> Transformer::visit(
     node.release();
     return this->visit(std::unique_ptr<StringModule>(ptr));
   }
-  throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+  assert(false && "Unreachable");  // LCOV_EXCL_LINE
   return node;                              // LCOV_EXCL_LINE
 }
 

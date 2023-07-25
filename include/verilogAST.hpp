@@ -599,13 +599,12 @@ class Connections {
     connections.push_back(std::make_pair(name, std::move(expr)));
   }
 
-  // Releases ownership of expression at @name if exists, othwerwise throws
-  // error.
+  // Releases ownership of expression at @name if exists, otherwise return null
   std::unique_ptr<Expression> at(std::string name) {
     auto is_name = [name](auto& element) { return element.first == name; };
     auto it = std::find_if(connections.begin(), connections.end(), is_name);
     if (it != connections.end()) return std::move(it->second);
-    throw std::runtime_error("Could not find '" + name + "'");
+    return nullptr;
   }
 
   ConnectionVector::iterator begin() { return connections.begin(); }
@@ -847,7 +846,7 @@ class Always : public StructuralStatement {
          std::vector<std::unique_ptr<BehavioralStatement>> body)
       : body(std::move(body)) {
     if (sensitivity_list.empty()) {
-      throw std::runtime_error(
+      assert(false && 
           "vAST::Always expects non-empty sensitivity list");
     }
     this->sensitivity_list = std::move(sensitivity_list);
@@ -913,7 +912,7 @@ class Case : public BehavioralStatement {
         cases(std::move(cases)),
         keyword(std::move(keyword)) {
     if (this->cases.empty()) {
-      throw std::runtime_error("vAST::Case expects non-empty cases");
+      assert(false && "vAST::Case expects non-empty cases");
     }
   };
   // Multiple inheritance forces us to have to explicitly state this?

@@ -110,7 +110,7 @@ std::unique_ptr<Port> AssignMapBuilder::visit(std::unique_ptr<Port> node) {
         } else if (auto ptr = dynamic_cast<Vector*>(value.get())) {
           return ptr->id->toString();
         }
-        throw std::runtime_error("Unreachable");  // LCOV_EXCL_LINE
+        assert(false && "Unreachable");  // LCOV_EXCL_LINE
         return "";                                // LCOV_EXCL_LINE
       },
       node->value);
