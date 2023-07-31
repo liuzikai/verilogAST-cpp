@@ -180,23 +180,33 @@ class Slice : public Expression {
  protected:
   Slice* clone_impl() const override {
     return new Slice(this->expr->clone(), this->high_index->clone(),
-                     this->low_index->clone());
+                     this->seperator, this->low_index->clone());
   };
 
  public:
   std::unique_ptr<Expression> expr;
   std::unique_ptr<Expression> high_index;
+  std::string seperator;
   std::unique_ptr<Expression> low_index;
+
+  Slice(std::unique_ptr<Expression> expr,
+        std::unique_ptr<Expression> high_index, std::string seperator,
+        std::unique_ptr<Expression> low_index)
+      : expr(std::move(expr)),
+        high_index(std::move(high_index)),
+        seperator(std::move(seperator)),
+        low_index(std::move(low_index)){};
 
   Slice(std::unique_ptr<Expression> expr,
         std::unique_ptr<Expression> high_index,
         std::unique_ptr<Expression> low_index)
-      : expr(std::move(expr)),
-        high_index(std::move(high_index)),
-        low_index(std::move(low_index)){};
+      : Slice(std::move(expr), std::move(high_index), ":",
+              std::move(low_index)){};
+
   Slice(const Slice& rhs)
       : expr(rhs.expr->clone()),
         high_index(rhs.high_index->clone()),
+        seperator(":"),
         low_index(rhs.low_index->clone()){};
   std::string toString() override;
 
@@ -846,8 +856,7 @@ class Always : public StructuralStatement {
          std::vector<std::unique_ptr<BehavioralStatement>> body)
       : body(std::move(body)) {
     if (sensitivity_list.empty()) {
-      assert(false && 
-          "vAST::Always expects non-empty sensitivity list");
+      assert(false && "vAST::Always expects non-empty sensitivity list");
     }
     this->sensitivity_list = std::move(sensitivity_list);
   };

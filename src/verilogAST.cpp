@@ -130,7 +130,7 @@ std::string Index::toString() {
 }
 
 std::string Slice::toString() {
-  return expr->toString() + '[' + high_index->toString() + ':' + low_index->toString() +
+  return expr->toString() + '[' + high_index->toString() + seperator + low_index->toString() +
          ']';
 }
 
