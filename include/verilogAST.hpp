@@ -10,6 +10,7 @@
 #include <utility>  // std::pair
 #include <variant>
 #include <vector>
+#include <assert.h>
 
 namespace verilogAST {
 
