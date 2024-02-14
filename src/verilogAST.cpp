@@ -335,8 +335,12 @@ std::string Module::emitModuleHeader() {
     module_header_str += " #(\n    ";
     std::vector<std::string> param_strs;
     for (auto &it : parameters) {
-      param_strs.push_back("parameter " + variant_to_string(it.first) + " = " +
-                           it.second->toString());
+      if (it.second) {
+        param_strs.push_back("parameter " + variant_to_string(it.first) + " = " +
+                             it.second->toString());
+      } else {
+        param_strs.push_back("parameter " + variant_to_string(it.first));
+      }
     }
     module_header_str += join(param_strs, ",\n    ");
     module_header_str += "\n)";
